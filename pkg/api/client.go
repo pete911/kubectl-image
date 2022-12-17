@@ -26,9 +26,17 @@ func NewClient(kubeconfigPath string) (Client, error) {
 	return Client{coreV1: cs.CoreV1()}, nil
 }
 
-func (c Client) ListRegistries(ctx context.Context) (Registries, error) {
+func (c Client) ListRegistries(ctx context.Context, namespace, labelSelector, fieldSelector string) (Registries, error) {
 
-	pods, err := c.getAllPods(ctx, "", "")
+	if namespace == "" {
+		pods, err := c.getAllPods(ctx, labelSelector, fieldSelector)
+		if err != nil {
+			return nil, fmt.Errorf("get images: %w", err)
+		}
+		return NewRegistries(pods), nil
+	}
+
+	pods, err := c.getPods(ctx, namespace, labelSelector, fieldSelector)
 	if err != nil {
 		return nil, fmt.Errorf("get images: %w", err)
 	}

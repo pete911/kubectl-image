@@ -1,33 +1,16 @@
 package main
 
 import (
-	"context"
-	"github.com/pete911/kubectl-image/pkg/api"
-	"github.com/pete911/kubectl-image/pkg/out"
-	"k8s.io/client-go/util/homedir"
-	"log"
-	"path/filepath"
-	"time"
+	"github.com/pete911/kubectl-image/cmd"
+	"os"
 )
+
+var Version = "dev"
 
 func main() {
 
-	registries, err := listRegistries()
-	if err != nil {
-		log.Fatal(err)
+	cmd.Version = Version
+	if err := cmd.RootCmd.Execute(); err != nil {
+		os.Exit(1)
 	}
-	out.Print(registries)
-}
-
-func listRegistries() (api.Registries, error) {
-
-	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
-	client, err := api.NewClient(kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	return client.ListRegistries(ctx)
 }

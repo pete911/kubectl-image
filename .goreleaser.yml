@@ -1,0 +1,42 @@
+builds:
+-
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch:
+    - amd64
+    - arm64
+  ldflags:
+    - -X main.Version={{.Version}}
+checksum:
+  name_template: 'checksums.txt'
+dist: releases
+archives:
+  - replacements:
+    format_overrides:
+    - goos: windows
+      format: zip
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+release:
+  github:
+    owner: pete911
+    name: kubectl-image
+brews:
+  - tap:
+      owner: pete911
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    name: kubectl-image
+    homepage: "https://github.com/pete911/kubectl-image"
+    description: "List images in kubernetes cluster."
+    folder: Formula
+    install: |
+      bin.install "kubectl-image"
+    test: |
+      assert_match /Usage/, shell_output("#{bin}/kubectl-image -h", 0)
