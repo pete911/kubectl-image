@@ -27,16 +27,24 @@ func printRegistry(registry api.Registry, prefix string) {
 func printRepository(repository api.Repository, prefix string) {
 
 	fmt.Printf("%s%s\n", prefix, repository.Name)
-	for _, tagDigest := range repository.ListTagDigests() {
-		printTagDigest(tagDigest, "    ")
+	for _, tagID := range repository.ListTagIDs() {
+		printTagID(tagID, "    ")
 	}
 }
 
-func printTagDigest(tagDigest api.TagDigest, prefix string) {
+func printTagID(tagDigest api.TagID, prefix string) {
 
-	fmt.Printf("%s%s\n", prefix, tagDigest.Name)
-	for _, container := range tagDigest.ListContainers() {
-		printContainer(container, "      ")
+	fmt.Printf("%sTag/ID: %s\n", prefix, tagDigest.Name)
+	for _, id := range tagDigest.ListIDs() {
+		printID(id, "    ")
+	}
+}
+
+func printID(id api.ID, prefix string) {
+
+	fmt.Printf("%sID:     %s\n", prefix, id.Name)
+	for _, container := range id.ListContainers() {
+		printContainer(container, "            ")
 	}
 }
 
@@ -46,6 +54,6 @@ func printContainer(container api.Container, prefix string) {
 	if container.IsInit {
 		containerKey = "[init-container]"
 	}
-	fmt.Printf("%s[namespace] %s %s %s [pod] %s [phase] %s\n",
+	fmt.Printf("%s[namespace] %s %s %s [pod] %s [pod-phase] %s\n",
 		prefix, container.Pod.Namespace, containerKey, container.Name, container.Pod.Name, container.Pod.Phase)
 }

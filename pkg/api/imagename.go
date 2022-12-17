@@ -14,15 +14,15 @@ type ImageName struct {
 	Registry   string
 	Repository string
 	Tag        string
-	Digest     string
+	ID         string
 	Error      string
 }
 
-func (i ImageName) TagDigest() string {
+func (i ImageName) TagOrID() string {
 	if i.Tag != "" {
 		return i.Tag
 	}
-	return i.Digest
+	return i.ID
 }
 
 func ParseImageName(image string) ImageName {
@@ -33,7 +33,7 @@ func ParseImageName(image string) ImageName {
 
 	var img ImageName
 	var imageWithoutVersion string
-	imageWithoutVersion, img.Tag, img.Digest = getImageTagAndDigest(image)
+	imageWithoutVersion, img.Tag, img.ID = getImageTagAndDigest(image)
 
 	// get repository if it exists
 	imageParts := strings.Split(imageWithoutVersion, "/")
@@ -50,6 +50,16 @@ func ParseImageName(image string) ImageName {
 
 	img.Repository = imageWithoutVersion
 	return img
+}
+
+// ParseImageID checks if passed in imageID is just id, if it is it returns it. If it is not, then it parses image
+// and returns only image ID
+func ParseImageID(imageID string) string {
+	if strings.HasPrefix(imageID, "sha256:") {
+		return imageID
+	}
+	_, _, id := getImageTagAndDigest(imageID)
+	return id
 }
 
 func getImageTagAndDigest(image string) (string, string, string) {

@@ -14,7 +14,7 @@ func TestParseImageName(t *testing.T) {
 		assert.Equal(t, "", image.Registry)
 		assert.Equal(t, "memcached", image.Repository)
 		assert.Equal(t, "1.5", image.Tag)
-		assert.Equal(t, "", image.Digest)
+		assert.Equal(t, "", image.ID)
 	})
 
 	t.Run("when image has docker.io registry then registry is removed", func(t *testing.T) {
@@ -24,7 +24,7 @@ func TestParseImageName(t *testing.T) {
 		assert.Equal(t, "", image.Registry)
 		assert.Equal(t, "memcached", image.Repository)
 		assert.Equal(t, "1.5", image.Tag)
-		assert.Equal(t, "", image.Digest)
+		assert.Equal(t, "", image.ID)
 	})
 
 	t.Run("image with registry", func(t *testing.T) {
@@ -34,17 +34,17 @@ func TestParseImageName(t *testing.T) {
 		assert.Equal(t, "quay.io", image.Registry)
 		assert.Equal(t, "jacksontj/promxy", image.Repository)
 		assert.Equal(t, "v0.0.58", image.Tag)
-		assert.Equal(t, "", image.Digest)
+		assert.Equal(t, "", image.ID)
 	})
 
-	t.Run("image with digest", func(t *testing.T) {
+	t.Run("image with digest/ID", func(t *testing.T) {
 		image := ParseImageName("gcr.io/google-containers/pause-amd64@sha256:4a1c4b21597c1b4415bdbecb28a3296c6b5e23ca4f9feeb599860a1dac6a0108")
 
 		assert.Equal(t, "", image.Error)
 		assert.Equal(t, "gcr.io", image.Registry)
 		assert.Equal(t, "google-containers/pause-amd64", image.Repository)
 		assert.Equal(t, "", image.Tag)
-		assert.Equal(t, "sha256:4a1c4b21597c1b4415bdbecb28a3296c6b5e23ca4f9feeb599860a1dac6a0108", image.Digest)
+		assert.Equal(t, "sha256:4a1c4b21597c1b4415bdbecb28a3296c6b5e23ca4f9feeb599860a1dac6a0108", image.ID)
 	})
 
 	t.Run("image ends with : is invalid", func(t *testing.T) {

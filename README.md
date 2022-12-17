@@ -1,5 +1,5 @@
 # kubectl-image
-List container images running in kubernetes cluster. This tool makes it easy to see what images are running in
+List container images running in kubernetes cluster. This tool makes it easy to see what images are running in the
 kubernetes cluster. Similar thing can be achieved by:
 
 ```
@@ -9,9 +9,11 @@ sort |\
 uniq -c
 ```
 
-But this tool makes it easier to see what pods and containers are using the image. Output is sorted by registry,
-repository and then tag (or digest) which makes it easy to spot if containers are running outdated versions (more than
-one tag per image repository).
+But this tool prints more information and the output is sorted, which makes it easier to see:
+- what pods and containers are using the image
+- output is sorted by registry, repository, tag (or digest/id) and id (if the container is running):
+  - easy to spot if image has been re-tagged (same tag, but multiple IDs)
+  - easy to spot if multiple versions of the image are running (outdated)
 
 ## Usage
 
@@ -39,19 +41,18 @@ kubectl-image list -A
 
 registry: registry.k8s.io
   coredns/coredns
-    v1.9.3
-      [namespace] kube-system [container] coredns [pod] coredns-565d847f94-kfs8m [phase] Running
-      [namespace] kube-system [container] coredns [pod] coredns-565d847f94-r9wvh [phase] Running
+    Tag/ID: v1.9.3
+    ID:     sha256:b19406328e70dd2f6a36d6dbe4e867b0684ced2fdeb2f02ecb54ead39ec0bac0
+            [namespace] kube-system [container] coredns [pod] coredns-565d847f94-kfs8m [pod-phase] Running
+            [namespace] kube-system [container] coredns [pod] coredns-565d847f94-r9wvh [pod-phase] Running
   etcd
-    3.5.4-0
-      [namespace] kube-system [container] etcd [pod] etcd-kind-control-plane [phase] Running
-registry: -
-  kindest/kindnetd
-    v20221004-44d545d1
-      [namespace] kube-system [container] kindnet-cni [pod] kindnet-dfhv7 [phase] Running
-  kindest/local-path-provisioner
-    v0.0.22-kind.0
-      [namespace] local-path-storage [container] local-path-provisioner [pod] local-path-provisioner-684f458cdd-47sfb [phase] Running
+    Tag/ID: 3.5.4-0
+    ID:     sha256:8e041a3b0ba8b5f930b1732f7e2ddb654b1739c89b068ff433008d633a51cd03
+            [namespace] kube-system [container] etcd [pod] etcd-kind-control-plane [pod-phase] Running
+  kube-apiserver
+    Tag/ID: v1.25.3
+    ID:     sha256:c666c2ddbc056f8aba649a2647a26d3f6224bce857613b91be6075c88ca963a1
+            [namespace] kube-system [container] kube-apiserver [pod] kube-apiserver-kind-control-plane [pod-phase] Running
 ```
 
 ## download

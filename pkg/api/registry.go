@@ -66,23 +66,23 @@ func (r Registry) addRepository(imageName ImageName, container Container) {
 	if _, ok := r.repositories[imageName.Repository]; !ok {
 		r.repositories[imageName.Repository] = newRepository(imageName)
 	}
-	r.repositories[imageName.Repository].addTagDigest(imageName, container)
+	r.repositories[imageName.Repository].addTagID(imageName, container)
 }
 
 // --- repository ---
 
 type Repository struct {
-	Name       string
-	tagDigests map[string]TagDigest
+	Name   string
+	tagIDs map[string]TagID
 }
 
 func newRepository(imageName ImageName) Repository {
-	return Repository{Name: imageName.Repository, tagDigests: map[string]TagDigest{}}
+	return Repository{Name: imageName.Repository, tagIDs: map[string]TagID{}}
 }
 
-func (r Repository) ListTagDigests() []TagDigest {
-	var out []TagDigest
-	for _, v := range r.tagDigests {
+func (r Repository) ListTagIDs() []TagID {
+	var out []TagID
+	for _, v := range r.tagIDs {
 		out = append(out, v)
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -91,14 +91,50 @@ func (r Repository) ListTagDigests() []TagDigest {
 	return out
 }
 
-func (r Repository) addTagDigest(imageName ImageName, container Container) {
-	if _, ok := r.tagDigests[imageName.TagDigest()]; !ok {
-		r.tagDigests[imageName.TagDigest()] = newTagDigest(imageName.TagDigest())
+func (r Repository) addTagID(imageName ImageName, container Container) {
+	if _, ok := r.tagIDs[imageName.TagOrID()]; !ok {
+		r.tagIDs[imageName.TagOrID()] = newTagID(imageName.TagOrID())
 	}
-	r.tagDigests[imageName.TagDigest()].addContainer(container)
+	r.tagIDs[imageName.TagOrID()].addID(container)
 }
 
-// --- tag or digest ---
+// --- image tag or digest/id ---
+
+// TagID is image tag or id, it comes from container
+type TagID struct {
+	Name string
+	iDs  map[string]ID
+}
+
+func newTagID(name string) TagID {
+	return TagID{Name: name, iDs: map[string]ID{}}
+}
+
+func (t TagID) ListIDs() []ID {
+	var out []ID
+	for _, v := range t.iDs {
+		out = append(out, v)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[j].Name > out[i].Name
+	})
+	return out
+}
+
+func (t TagID) addID(container Container) {
+	if _, ok := t.iDs[container.ImageID]; !ok {
+		t.iDs[container.ImageID] = newID(container.ImageID)
+	}
+	t.iDs[container.ImageID].addContainer(container)
+}
+
+// --- container digest/id ---
+
+// ID is container image digest/ID, it comes from container status after image is pulled
+type ID struct {
+	Name       string
+	containers map[containerKey]Container
+}
 
 type containerKey struct {
 	podName       string
@@ -106,27 +142,22 @@ type containerKey struct {
 	containerName string
 }
 
-type TagDigest struct {
-	Name       string
-	containers map[containerKey]Container
+func newID(name string) ID {
+	return ID{Name: name, containers: map[containerKey]Container{}}
 }
 
-func newTagDigest(name string) TagDigest {
-	return TagDigest{Name: name, containers: map[containerKey]Container{}}
-}
-
-func (t TagDigest) addContainer(container Container) {
+func (i ID) addContainer(container Container) {
 	key := containerKey{
 		podName:       container.Pod.Name,
 		podNamespace:  container.Pod.Namespace,
 		containerName: container.Name,
 	}
-	t.containers[key] = container
+	i.containers[key] = container
 }
 
-func (t TagDigest) ListContainers() []Container {
+func (i ID) ListContainers() []Container {
 	var out []Container
-	for _, v := range t.containers {
+	for _, v := range i.containers {
 		out = append(out, v)
 	}
 	sort.Slice(out, func(i, j int) bool {
