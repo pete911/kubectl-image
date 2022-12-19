@@ -14,7 +14,7 @@ func NewRegistries(pods []v1.Pod) Registries {
 			addToRegistries(registries, p, c, false)
 		}
 		for _, c := range p.Spec.InitContainers {
-			addToRegistries(registries, p, c, false)
+			addToRegistries(registries, p, c, true)
 		}
 	}
 	return registries
