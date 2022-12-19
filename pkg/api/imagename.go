@@ -18,6 +18,30 @@ type ImageName struct {
 	Error      string
 }
 
+func (i ImageName) String() string {
+	image := fmt.Sprintf("%s/%s", i.Registry, i.Repository)
+	if i.ID != "" {
+		return fmt.Sprintf("%s@%s", image, i.ID)
+	}
+	return fmt.Sprintf("%s:%s", image, i.Tag)
+}
+
+func (i ImageName) Equals(imageName ImageName) bool {
+	if imageName.Registry != i.Registry {
+		return false
+	}
+	if imageName.Repository != i.Repository {
+		return false
+	}
+	if imageName.Tag != i.Tag {
+		return false
+	}
+	if imageName.ID != i.ID {
+		return false
+	}
+	return true
+}
+
 func (i ImageName) TagOrID() string {
 	if i.Tag != "" {
 		return i.Tag

@@ -6,6 +6,7 @@ import (
 	"github.com/pete911/kubectl-image/pkg/api"
 	"github.com/pete911/kubectl-image/pkg/out"
 	"github.com/spf13/cobra"
+	"os"
 	"strings"
 	"time"
 )
@@ -17,58 +18,76 @@ var (
 		Long:  "",
 		RunE:  runListCmd,
 	}
-	podFlags PodFlags
+	listFlags ListFlags
 )
 
 func init() {
 
 	RootCmd.AddCommand(cmdList)
-	InitPodFlags(cmdList, &podFlags)
+	InitPodFlags(cmdList, &listFlags)
 }
 
 func runListCmd(_ *cobra.Command, args []string) error {
 
 	// no namespace means all namespaces
-	if podFlags.AllNamespaces {
-		podFlags.Namespace = ""
+	if listFlags.AllNamespaces {
+		listFlags.Namespace = ""
 	}
 
 	// additional arguments are considered to be pod names, add to field selector flags
 	for _, v := range args {
-		fieldSelectors := strings.Split(podFlags.FieldSelector, ",")
+		fieldSelectors := strings.Split(listFlags.FieldSelector, ",")
 		fieldSelectors = append(fieldSelectors, fmt.Sprintf("metadata.name=%s", v))
-		podFlags.FieldSelector = strings.Join(fieldSelectors, ",")
+		listFlags.FieldSelector = strings.Join(fieldSelectors, ",")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	registries, err := listRegistries(ctx, podFlags.Namespace, podFlags.Label, podFlags.FieldSelector)
+	client, err := api.NewClient(KubeconfigPath)
 	if err != nil {
-		return fmt.Errorf("list registries: %w", err)
+		fmt.Printf("error: %v", err)
+		os.Exit(1)
+	}
+
+	registries, err := listRegistries(client)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		os.Exit(1)
+	}
+
+	nodes, err := listNodes(client)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		os.Exit(1)
 	}
 
 	if len(registries) == 0 {
 		namespace := "all namespaces"
-		if podFlags.Namespace != "" {
-			namespace = fmt.Sprintf("%s namespace", podFlags.Namespace)
+		if listFlags.Namespace != "" {
+			namespace = fmt.Sprintf("%s namespace", listFlags.Namespace)
 		}
 		fmt.Printf("found 0 images in %s\n", namespace)
 		return nil
 	}
 
-	out.Print(registries)
+	out.PrintRegistries(registries, nodes)
 	return nil
 }
 
-func listRegistries(ctx context.Context, namespace, labelSelector, fieldSelector string) (api.Registries, error) {
+func listRegistries(client api.Client) (api.Registries, error) {
 
-	client, err := api.NewClient(KubeconfigPath)
-	if err != nil {
-		return nil, err
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	return client.ListRegistries(ctx, listFlags.Namespace, listFlags.Label, listFlags.FieldSelector)
+}
+
+func listNodes(client api.Client) (api.Nodes, error) {
+
+	if !listFlags.Size {
+		return api.Nodes{}, nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	return client.ListRegistries(ctx, namespace, labelSelector, fieldSelector)
+
+	return client.ListNodes(ctx)
 }

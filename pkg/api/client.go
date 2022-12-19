@@ -26,6 +26,15 @@ func NewClient(kubeconfigPath string) (Client, error) {
 	return Client{coreV1: cs.CoreV1()}, nil
 }
 
+func (c Client) ListNodes(ctx context.Context) (Nodes, error) {
+
+	nodeList, err := c.coreV1.Nodes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("get nodes: %w", err)
+	}
+	return NewNodes(nodeList.Items), nil
+}
+
 func (c Client) ListRegistries(ctx context.Context, namespace, labelSelector, fieldSelector string) (Registries, error) {
 
 	if namespace == "" {

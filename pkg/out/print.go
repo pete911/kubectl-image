@@ -5,55 +5,60 @@ import (
 	"github.com/pete911/kubectl-image/pkg/api"
 )
 
-func Print(registries api.Registries) {
+func PrintRegistries(registries api.Registries, nodes api.Nodes) {
 
 	for _, registry := range registries {
-		printRegistry(registry, "")
+		printRegistry(registry, nodes)
 	}
 }
 
-func printRegistry(registry api.Registry, prefix string) {
+func printRegistry(registry api.Registry, nodes api.Nodes) {
 
 	registryName := registry.Name
 	if registryName == "" {
 		registryName = "-"
 	}
-	fmt.Printf("%sregistry: %s\n", prefix, registryName)
+	fmt.Printf("registry: %s\n", registryName)
 	for _, repository := range registry.ListRepositories() {
-		printRepository(repository, "  ")
+		printRepository(repository, nodes)
 	}
 }
 
-func printRepository(repository api.Repository, prefix string) {
+func printRepository(repository api.Repository, nodes api.Nodes) {
 
-	fmt.Printf("%s%s\n", prefix, repository.Name)
+	fmt.Printf("  %s\n", repository.Name)
 	for _, tagID := range repository.ListTagIDs() {
-		printTagID(tagID, "    ")
+		printTagID(tagID, nodes)
 	}
 }
 
-func printTagID(tagDigest api.TagID, prefix string) {
+func printTagID(tagDigest api.TagID, nodes api.Nodes) {
 
-	fmt.Printf("%sTag/ID: %s\n", prefix, tagDigest.Name)
+	sizeStr := ""
+	if size := nodes.GetSizeBytes(tagDigest.ImageName); size != 0 {
+		sizeMb := float64(size) / 1000000
+		sizeStr = fmt.Sprintf("\tSize: %.2fMB", sizeMb)
+	}
+	fmt.Printf("    Tag/ID: %s%s\n", tagDigest.Name, sizeStr)
 	for _, id := range tagDigest.ListIDs() {
-		printID(id, "    ")
+		printID(id)
 	}
 }
 
-func printID(id api.ID, prefix string) {
+func printID(id api.ID) {
 
-	fmt.Printf("%sID:     %s\n", prefix, id.Name)
+	fmt.Printf("    ID:     %s\n", id.Name)
 	for _, container := range id.ListContainers() {
-		printContainer(container, "            ")
+		printContainer(container)
 	}
 }
 
-func printContainer(container api.Container, prefix string) {
+func printContainer(container api.Container) {
 
 	containerKey := "[container]"
 	if container.IsInit {
 		containerKey = "[init-container]"
 	}
-	fmt.Printf("%s[namespace] %s %s %s [pod] %s [pod-phase] %s\n",
-		prefix, container.Pod.Namespace, containerKey, container.Name, container.Pod.Name, container.Pod.Phase)
+	fmt.Printf("            [namespace] %s %s %s [pod] %s [pod-phase] %s\n",
+		container.Pod.Namespace, containerKey, container.Name, container.Pod.Name, container.Pod.Phase)
 }

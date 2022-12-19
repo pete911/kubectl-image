@@ -44,11 +44,16 @@ func (r Registries) List() []Registry {
 
 type Registry struct {
 	Name         string
+	ImageName    ImageName
 	repositories map[string]Repository
 }
 
 func newRegistry(imageName ImageName) Registry {
-	return Registry{Name: imageName.Registry, repositories: map[string]Repository{}}
+	return Registry{
+		Name:         imageName.Registry,
+		ImageName:    imageName,
+		repositories: map[string]Repository{},
+	}
 }
 
 func (r Registry) ListRepositories() []Repository {
@@ -72,12 +77,17 @@ func (r Registry) addRepository(imageName ImageName, container Container) {
 // --- repository ---
 
 type Repository struct {
-	Name   string
-	tagIDs map[string]TagID
+	Name      string
+	ImageName ImageName
+	tagIDs    map[string]TagID
 }
 
 func newRepository(imageName ImageName) Repository {
-	return Repository{Name: imageName.Repository, tagIDs: map[string]TagID{}}
+	return Repository{
+		Name:      imageName.Repository,
+		ImageName: imageName,
+		tagIDs:    map[string]TagID{},
+	}
 }
 
 func (r Repository) ListTagIDs() []TagID {
@@ -93,7 +103,7 @@ func (r Repository) ListTagIDs() []TagID {
 
 func (r Repository) addTagID(imageName ImageName, container Container) {
 	if _, ok := r.tagIDs[imageName.TagOrID()]; !ok {
-		r.tagIDs[imageName.TagOrID()] = newTagID(imageName.TagOrID())
+		r.tagIDs[imageName.TagOrID()] = newTagID(imageName)
 	}
 	r.tagIDs[imageName.TagOrID()].addID(container)
 }
@@ -102,12 +112,17 @@ func (r Repository) addTagID(imageName ImageName, container Container) {
 
 // TagID is image tag or id, it comes from container
 type TagID struct {
-	Name string
-	iDs  map[string]ID
+	Name      string
+	ImageName ImageName
+	iDs       map[string]ID
 }
 
-func newTagID(name string) TagID {
-	return TagID{Name: name, iDs: map[string]ID{}}
+func newTagID(imageName ImageName) TagID {
+	return TagID{
+		Name:      imageName.TagOrID(),
+		ImageName: imageName,
+		iDs:       map[string]ID{},
+	}
 }
 
 func (t TagID) ListIDs() []ID {
