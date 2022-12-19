@@ -13,7 +13,12 @@ type Container struct {
 
 func NewContainer(pod v1.Pod, container v1.Container, isInit bool) Container {
 	var imageID string
-	for _, containerStatus := range pod.Status.ContainerStatuses {
+	containerStatuses := pod.Status.ContainerStatuses
+	if isInit {
+		containerStatuses = pod.Status.InitContainerStatuses
+	}
+
+	for _, containerStatus := range containerStatuses {
 		if container.Name == containerStatus.Name {
 			// sometimes the image ID contains only ID, sometimes the whole image
 			imageID = ParseImageID(containerStatus.ImageID)
