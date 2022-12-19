@@ -18,7 +18,7 @@ But this tool prints more information and the output is sorted, which makes it e
 ## Usage
 
 ```
-kubectl-image list
+kubectl image list
 
 Flags:
   -A, --all-namespaces          all kubernetes namespaces
@@ -29,15 +29,15 @@ Flags:
   -n, --namespace string        kubernetes namespace (default "default")
 ```
 
-- get all images in all namespaces `kubectl-image list -A`
-- get all images in a namespaces `kubectl-image list -n kube-system`
-- select pod images by pod label `kubectl-image list -A -l k8s-app=kube-dns`
-- specific pod `kubectl-image list -n kube-system kube-dns-66bff467f8-7mz46`
+- get all images in all namespaces `kubectl image list -A`
+- get all images in a namespaces `kubectl image list -n kube-system`
+- select pod images by pod label `kubectl image list -A -l k8s-app=kube-dns`
+- specific pod `kubectl image list -n kube-system kube-dns-66bff467f8-7mz46`
 
 ## Example
 
 ```
-kubectl-image list -A
+kubectl image list -A
 
 registry: registry.k8s.io
   coredns/coredns
