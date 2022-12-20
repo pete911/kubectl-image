@@ -1,4 +1,7 @@
 # kubectl-image
+
+[![pipeline](https://github.com/pete911/kubectl-image/actions/workflows/pipeline.yml/badge.svg)](https://github.com/pete911/kubectl-image/actions/workflows/pipeline.yml)
+
 List container images running in kubernetes cluster. This tool makes it easy to see what images are running in the
 kubernetes cluster. Similar thing can be achieved by:
 
