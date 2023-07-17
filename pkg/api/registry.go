@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+// Registries map where key is registry name (e.g. gcr.io) and value is Registry struct
 type Registries map[string]Registry
 
 func NewRegistries(pods []v1.Pod) Registries {
@@ -42,6 +43,7 @@ func (r Registries) List() []Registry {
 
 // --- registry ---
 
+// Registry (e.g. gcr.io) 'bucket' of repositories (and images)
 type Registry struct {
 	Name         string
 	ImageName    ImageName
@@ -76,6 +78,7 @@ func (r Registry) addRepository(imageName ImageName, container Container) {
 
 // --- repository ---
 
+// Repository (image name without registry and tag/id e.g. jacksontj/promxy) 'bucket' of tags/ids
 type Repository struct {
 	Name      string
 	ImageName ImageName
