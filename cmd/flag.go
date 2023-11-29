@@ -17,7 +17,6 @@ type Flags struct {
 	logLevel       string
 	namespace      string
 	allNamespaces  bool
-	size           bool
 }
 
 func (f Flags) KubeconfigPath() string {
@@ -40,10 +39,6 @@ func (f Flags) Namespace() string {
 		return ""
 	}
 	return f.namespace
-}
-
-func (f Flags) Size() bool {
-	return f.size
 }
 
 func InitPersistentFlags(cmd *cobra.Command, flags *Flags) {
@@ -73,13 +68,6 @@ func InitPersistentFlags(cmd *cobra.Command, flags *Flags) {
 		"A",
 		false,
 		"all kubernetes namespaces",
-	)
-	cmd.PersistentFlags().BoolVarP(
-		&flags.size,
-		"size",
-		"",
-		true,
-		"print image size",
 	)
 }
 

@@ -24,11 +24,11 @@ func init() {
 
 func runListCmd(_ *cobra.Command, _ []string) {
 	logger := GlobalFlags.Logger()
-	registries, nodes := GetRegistriesAndNodes()
-	PrintList(logger, registries, nodes)
+	registries := GetRegistries()
+	PrintList(logger, registries)
 }
 
-func PrintList(logger *slog.Logger, registries api.Registries, nodes api.Nodes) {
+func PrintList(logger *slog.Logger, registries api.Registries) {
 	table := out.NewTable(logger, 50)
 	table.AddRow("REGISTRY", "REPOSITORY", "TAG", "ID", "SIZE", "PODS", "FAILED", "RESTART")
 	for _, registry := range registries {
@@ -40,7 +40,7 @@ func PrintList(logger *slog.Logger, registries api.Registries, nodes api.Nodes) 
 					continue
 				}
 				// nodes can have image either by tag or id, we just need first container to find the size
-				size := nodes.GetSizeBytes(id.ListContainers()[0].ImageName)
+				size := id.ListContainers()[0].ImageSizeBytes
 				sizeMb := fmt.Sprintf("%.2fMB", float64(size)/1000000)
 				tags := strings.Join(id.ListTags(), ", ")
 				pods := getNumPods(containers, false)

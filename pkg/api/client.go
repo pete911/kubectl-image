@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	"time"
 )
 
 type Client struct {
@@ -26,42 +27,37 @@ func NewClient(kubeconfigPath string) (Client, error) {
 	return Client{coreV1: cs.CoreV1()}, nil
 }
 
-func (c Client) ListNodes(ctx context.Context) (Nodes, error) {
-
-	nodeList, err := c.coreV1.Nodes().List(ctx, metav1.ListOptions{})
+func (c Client) ListRegistries(namespace string) (Registries, error) {
+	nodes, err := c.listNodes()
 	if err != nil {
-		return nil, fmt.Errorf("get nodes: %w", err)
+		return nil, fmt.Errorf("list nodes: %w", err)
 	}
-	return NewNodes(nodeList.Items), nil
-}
-
-func (c Client) ListRegistries(ctx context.Context, namespace string) (Registries, error) {
 
 	if namespace == "" {
-		pods, err := c.getAllPods(ctx)
+		pods, err := c.getAllPods()
 		if err != nil {
 			return nil, fmt.Errorf("get images: %w", err)
 		}
-		return NewRegistries(pods), nil
+		return NewRegistries(nodes, pods), nil
 	}
 
-	pods, err := c.getPods(ctx, namespace)
+	pods, err := c.getPods(namespace)
 	if err != nil {
 		return nil, fmt.Errorf("get images: %w", err)
 	}
-	return NewRegistries(pods), nil
+	return NewRegistries(nodes, pods), nil
 }
 
-func (c Client) getAllPods(ctx context.Context) ([]v1.Pod, error) {
+func (c Client) getAllPods() ([]v1.Pod, error) {
 
-	namespaces, err := c.getNamespaces(ctx)
+	namespaces, err := c.getNamespaces()
 	if err != nil {
 		return nil, fmt.Errorf("get namespaces: %w", err)
 	}
 
 	var pods []v1.Pod
 	for _, namespace := range namespaces {
-		p, err := c.getPods(ctx, namespace.Name)
+		p, err := c.getPods(namespace.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +66,9 @@ func (c Client) getAllPods(ctx context.Context) ([]v1.Pod, error) {
 	return pods, nil
 }
 
-func (c Client) getPods(ctx context.Context, namespace string) ([]v1.Pod, error) {
+func (c Client) getPods(namespace string) ([]v1.Pod, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	podList, err := c.coreV1.Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
@@ -79,11 +77,24 @@ func (c Client) getPods(ctx context.Context, namespace string) ([]v1.Pod, error)
 	return podList.Items, nil
 }
 
-func (c Client) getNamespaces(ctx context.Context) ([]v1.Namespace, error) {
+func (c Client) getNamespaces() ([]v1.Namespace, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	namespaceList, err := c.coreV1.Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("get namespaces: %w", err)
 	}
 	return namespaceList.Items, nil
+}
+
+func (c Client) listNodes() (map[string]Node, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	nodeList, err := c.coreV1.Nodes().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("get nodes: %w", err)
+	}
+	return NewNodes(nodeList.Items), nil
 }

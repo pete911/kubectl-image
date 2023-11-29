@@ -1,39 +1,32 @@
 package api
 
-import v1 "k8s.io/api/core/v1"
+import (
+	v1 "k8s.io/api/core/v1"
+	"time"
+)
 
 // --- nodes ---
 
-type Nodes []Node
-
-func NewNodes(nodes []v1.Node) Nodes {
-	var out []Node
+func NewNodes(nodes []v1.Node) map[string]Node {
+	out := make(map[string]Node)
 	for _, node := range nodes {
-		out = append(out, NewNode(node))
+		out[node.Name] = NewNode(node)
 	}
 	return out
-}
-
-// GetSizeBytes return size in bytes if the image is found, 0 is returned otherwise
-func (n Nodes) GetSizeBytes(imageName ImageName) int64 {
-	for _, node := range n {
-		if size := node.NodeImages.GetSizeBytes(imageName); size != 0 {
-			return size
-		}
-	}
-	return 0
 }
 
 // --- node ---
 
 type Node struct {
 	Name       string
+	Created    time.Time
 	NodeImages NodeImages
 }
 
 func NewNode(node v1.Node) Node {
 	return Node{
 		Name:       node.Name,
+		Created:    node.CreationTimestamp.Time,
 		NodeImages: newNodeImages(node.Status.Images),
 	}
 }

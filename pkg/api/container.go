@@ -10,13 +10,16 @@ import (
 type Containers []Container
 
 type Container struct {
-	Name         string
-	Pod          Pod
-	IsInit       bool
-	ImageName    ImageName
-	State        string // waiting, running or terminated
-	Message      string // reason and message if container is waiting, start time if running, ...
-	RestartCount int
+	Name           string
+	Pod            Pod
+	IsInit         bool
+	ImageName      ImageName
+	ImageSizeBytes int64
+	NodeName       string
+	NodeCreated    time.Time
+	State          string // waiting, running or terminated
+	Message        string // reason and message if container is waiting, start time if running, ...
+	RestartCount   int
 }
 
 func NewContainer(pod v1.Pod, container v1.Container, isInit bool) Container {

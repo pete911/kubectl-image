@@ -8,25 +8,36 @@ import (
 // Registries map where key is registry name (e.g. gcr.io) and value is Registry struct
 type Registries map[string]Registry
 
-func NewRegistries(pods []v1.Pod) Registries {
+func NewRegistries(nodes map[string]Node, pods []v1.Pod) Registries {
 	registries := Registries{}
 	for _, p := range pods {
 		for _, c := range p.Spec.Containers {
-			addToRegistries(registries, p, c, false)
+			container := NewContainer(p, c, false)
+			if node, ok := nodes[p.Spec.NodeName]; ok {
+				container.ImageSizeBytes = node.NodeImages.GetSizeBytes(container.ImageName)
+				container.NodeName = node.Name
+				container.NodeCreated = node.Created
+			}
+			addToRegistries(registries, p, container, false)
 		}
 		for _, c := range p.Spec.InitContainers {
-			addToRegistries(registries, p, c, true)
+			container := NewContainer(p, c, true)
+			if node, ok := nodes[p.Spec.NodeName]; ok {
+				container.ImageSizeBytes = node.NodeImages.GetSizeBytes(container.ImageName)
+				container.NodeName = node.Name
+				container.NodeCreated = node.Created
+			}
+			addToRegistries(registries, p, container, true)
 		}
 	}
 	return registries
 }
 
-func addToRegistries(registries Registries, p v1.Pod, c v1.Container, isInit bool) {
-	container := NewContainer(p, c, isInit)
-	if _, ok := registries[container.ImageName.Registry]; !ok {
-		registries[container.ImageName.Registry] = newRegistry(container)
+func addToRegistries(registries Registries, p v1.Pod, c Container, isInit bool) {
+	if _, ok := registries[c.ImageName.Registry]; !ok {
+		registries[c.ImageName.Registry] = newRegistry(c)
 	}
-	registries[container.ImageName.Registry].addRepository(container)
+	registries[c.ImageName.Registry].addRepository(c)
 }
 
 func (r Registries) List() []Registry {
