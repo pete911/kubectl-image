@@ -33,20 +33,14 @@ func (i ImageName) Equals(imageName ImageName) bool {
 	if imageName.Repository != i.Repository {
 		return false
 	}
-	if imageName.Tag != i.Tag {
-		return false
+	// more important than tag
+	if imageName.ID != "" && i.ID != "" {
+		return imageName.ID == i.ID
 	}
-	if imageName.ID != i.ID {
-		return false
+	if imageName.Tag != "" && i.Tag != "" {
+		return imageName.Tag == i.Tag
 	}
-	return true
-}
-
-func (i ImageName) TagOrID() string {
-	if i.Tag != "" {
-		return i.Tag
-	}
-	return i.ID
+	return false
 }
 
 func ParseImageName(image string) ImageName {
@@ -86,16 +80,21 @@ func ParseImageID(imageID string) string {
 	return id
 }
 
+// GetImageTag checks if the image has tag suffix, if it does, then it returns it
+func GetImageTag(imageID string) string {
+	_, tag, _ := getImageTagAndDigest(imageID)
+	return tag
+}
+
 func getImageTagAndDigest(image string) (string, string, string) {
+	var tag, digest string
 	if strings.Contains(image, digestSeparator) {
-		imageWithoutSuffix, suffix := splitImageAndSuffix(image, digestSeparator)
-		return imageWithoutSuffix, "", suffix
+		image, digest = splitImageAndSuffix(image, digestSeparator)
 	}
 	if strings.Contains(image, tagSeparator) {
-		imageWithoutSuffix, suffix := splitImageAndSuffix(image, tagSeparator)
-		return imageWithoutSuffix, suffix, ""
+		image, tag = splitImageAndSuffix(image, tagSeparator)
 	}
-	return image, "", ""
+	return image, tag, digest
 }
 
 func splitImageAndSuffix(image, separator string) (string, string) {

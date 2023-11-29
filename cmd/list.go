@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"github.com/pete911/kubectl-image/pkg/api"
 	"github.com/pete911/kubectl-image/pkg/out"
 	"github.com/spf13/cobra"
-	"os"
+	"log/slog"
 	"strings"
-	"time"
 )
 
 var (
@@ -16,78 +14,67 @@ var (
 		Use:   "list",
 		Short: "list images",
 		Long:  "",
-		RunE:  runListCmd,
+		Run:   runListCmd,
 	}
-	listFlags ListFlags
 )
 
 func init() {
-
 	RootCmd.AddCommand(cmdList)
-	InitPodFlags(cmdList, &listFlags)
 }
 
-func runListCmd(_ *cobra.Command, args []string) error {
+func runListCmd(_ *cobra.Command, _ []string) {
+	logger := GlobalFlags.Logger()
+	registries, nodes := GetRegistriesAndNodes()
+	PrintList(logger, registries, nodes)
+}
 
-	// no namespace means all namespaces
-	if listFlags.AllNamespaces {
-		listFlags.Namespace = ""
-	}
-
-	// additional arguments are considered to be pod names, add to field selector flags
-	for _, v := range args {
-		fieldSelectors := strings.Split(listFlags.FieldSelector, ",")
-		fieldSelectors = append(fieldSelectors, fmt.Sprintf("metadata.name=%s", v))
-		listFlags.FieldSelector = strings.Join(fieldSelectors, ",")
-	}
-
-	client, err := api.NewClient(KubeconfigPath)
-	if err != nil {
-		fmt.Printf("error: %v", err)
-		os.Exit(1)
-	}
-
-	registries, err := listRegistries(client)
-	if err != nil {
-		fmt.Printf("error: %v", err)
-		os.Exit(1)
-	}
-
-	nodes, err := listNodes(client)
-	if err != nil {
-		fmt.Printf("error: %v", err)
-		os.Exit(1)
-	}
-
-	if len(registries) == 0 {
-		namespace := "all namespaces"
-		if listFlags.Namespace != "" {
-			namespace = fmt.Sprintf("%s namespace", listFlags.Namespace)
+func PrintList(logger *slog.Logger, registries api.Registries, nodes api.Nodes) {
+	table := out.NewTable(logger, 50)
+	table.AddRow("REGISTRY", "REPOSITORY", "TAG", "ID", "SIZE", "PODS", "FAILED", "RESTART")
+	for _, registry := range registries {
+		for _, repository := range registry.ListRepositories() {
+			for _, id := range repository.ListIDs() {
+				containers := id.ListContainers()
+				if len(containers) == 0 {
+					// very unlikely
+					continue
+				}
+				// nodes can have image either by tag or id, we just need first container to find the size
+				size := nodes.GetSizeBytes(id.ListContainers()[0].ImageName)
+				sizeMb := fmt.Sprintf("%.2fMB", float64(size)/1000000)
+				tags := strings.Join(id.ListTags(), ", ")
+				pods := getNumPods(containers, false)
+				failedPods := getNumPods(containers, true)
+				restarts := getNumRestarts(containers)
+				table.AddRow(registry.Name, repository.Name, tags, id.Name, sizeMb, pods, failedPods, restarts)
+			}
 		}
-		fmt.Printf("found 0 images in %s\n", namespace)
-		return nil
 	}
-
-	out.PrintRegistries(registries, nodes)
-	return nil
+	table.Print()
 }
 
-func listRegistries(client api.Client) (api.Registries, error) {
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	return client.ListRegistries(ctx, listFlags.Namespace, listFlags.Label, listFlags.FieldSelector)
+func getNumRestarts(containers api.Containers) string {
+	var restarts int
+	for _, container := range containers {
+		restarts = restarts + container.RestartCount
+	}
+	return fmt.Sprintf("%d", restarts)
 }
 
-func listNodes(client api.Client) (api.Nodes, error) {
-
-	if !listFlags.Size {
-		return api.Nodes{}, nil
+func getNumPods(containers []api.Container, failed bool) string {
+	searchedSet := make(map[string]struct{})
+	for _, container := range containers {
+		key := fmt.Sprintf("%s/%s", container.Pod.Namespace, container.Pod.Name)
+		if _, ok := searchedSet[key]; ok {
+			continue
+		}
+		if failed {
+			if strings.ToLower(container.Pod.Phase) == "failed" {
+				searchedSet[key] = struct{}{}
+			}
+			continue
+		}
+		searchedSet[key] = struct{}{}
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	return client.ListNodes(ctx)
+	return fmt.Sprintf("%d", len(searchedSet))
 }

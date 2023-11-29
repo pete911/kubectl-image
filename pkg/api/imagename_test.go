@@ -37,6 +37,16 @@ func TestParseImageName(t *testing.T) {
 		assert.Equal(t, "", image.ID)
 	})
 
+	t.Run("image with tag and digest/ID", func(t *testing.T) {
+		image := ParseImageName("public.ecr.aws/karpenter/controller:v0.31.1@sha256:be5da7cb9181c2969280e869c465927de278e17d56762bfa5eeb4b21e5c9762e")
+
+		assert.Equal(t, "", image.Error)
+		assert.Equal(t, "public.ecr.aws", image.Registry)
+		assert.Equal(t, "karpenter/controller", image.Repository)
+		assert.Equal(t, "v0.31.1", image.Tag)
+		assert.Equal(t, "sha256:be5da7cb9181c2969280e869c465927de278e17d56762bfa5eeb4b21e5c9762e", image.ID)
+	})
+
 	t.Run("image with digest/ID", func(t *testing.T) {
 		image := ParseImageName("gcr.io/google-containers/pause-amd64@sha256:4a1c4b21597c1b4415bdbecb28a3296c6b5e23ca4f9feeb599860a1dac6a0108")
 

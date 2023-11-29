@@ -21,42 +21,73 @@ But this tool prints more information and the output is sorted, which makes it e
 ## Usage
 
 ```
-kubectl image list
+Available Commands:
+  get         get images
+  help        Help about any command
+  list        list images
+  version     print version
 
 Flags:
   -A, --all-namespaces          all kubernetes namespaces
-      --field-selector string   kubernetes field selector
   -h, --help                    help for list
       --kubeconfig string       path to kubeconfig file (default "~/.kube/config")
-  -l, --label string            kubernetes label
+      --log-level string        log level - debug, info, warn, error (default "warn")
   -n, --namespace string        kubernetes namespace (default "default")
       --size                    print image size (default true)
 ```
 
-- get all images in all namespaces `kubectl image list -A`
-- get all images in a namespaces `kubectl image list -n kube-system`
-- select pod images by pod label `kubectl image list -A -l k8s-app=kube-dns`
-- specific pod `kubectl image list -n kube-system kube-dns-66bff467f8-7mz46`
+- list images in all namespaces `kubectl image list -A`
+- list images in a namespaces `kubectl image list -n kube-system`
 
 ## Example
 
+### list images
 ```
-kubectl image list -A
+kubectl-image list -n kube-system
 
-registry: registry.k8s.io
-  coredns/coredns
-    Tag/ID: v1.9.3      Size: 13.42MB
-    ID:     sha256:b19406328e70dd2f6a36d6dbe4e867b0684ced2fdeb2f02ecb54ead39ec0bac0
-            [namespace] kube-system [container] coredns [pod] coredns-565d847f94-kfs8m [pod-phase] Running
-            [namespace] kube-system [container] coredns [pod] coredns-565d847f94-r9wvh [pod-phase] Running
-  etcd
-    Tag/ID: 3.5.4-0     Size: 81.12MB
-    ID:     sha256:8e041a3b0ba8b5f930b1732f7e2ddb654b1739c89b068ff433008d633a51cd03
-            [namespace] kube-system [container] etcd [pod] etcd-kind-control-plane [pod-phase] Running
-  kube-apiserver
-    Tag/ID: v1.25.3     Size: 74.21MB
-    ID:     sha256:c666c2ddbc056f8aba649a2647a26d3f6224bce857613b91be6075c88ca963a1
-            [namespace] kube-system [container] kube-apiserver [pod] kube-apiserver-kind-control-plane [pod-phase] Running
+REGISTRY                                      REPOSITORY                       TAG                         ID                                                 SIZE      PODS  FAILED  RESTART
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  amazon-k8s-cni                   v1.14.1-eksbuild.1          sha256:0aea2419c512f8d41a28d9c4c203247582e434a9..  44.05MB   1     0       5
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  amazon-k8s-cni                   v1.14.1-eksbuild.1          sha256:60e1f62f53dc02d5bd1df3be1e32756471205261..  44.05MB   3     0       0
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  amazon-k8s-cni-init              v1.14.1-eksbuild.1          sha256:2e23a3ecc3fbb541a474a6096cd5ec7ebf91ec6e..  59.66MB   1     0       5
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  amazon-k8s-cni-init              v1.14.1-eksbuild.1          sha256:7f5a193cf10e73fc14121aa2fc2f81361aeb9f6c..  59.66MB   3     0       0
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  amazon/aws-network-policy-agent  v1.0.2-eksbuild.1           sha256:71fbb862ba51217f4c8a22502cba6fa8baa098b8..  291.58MB  4     0       5
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  eks/coredns                      v1.10.1-eksbuild.2          sha256:b5d40542d3a72b3c709de62c40f37f498beba800..  16.22MB   2     0       0
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  eks/kube-proxy                   v1.28.1-minimal-eksbuild.1  sha256:5ab5ddb93ba8833e9090ca7ea4780ade10812890..  30.63MB   1     0       5
+602401143452.dkr.ecr.eu-west-2.amazonaws.com  eks/kube-proxy                   v1.28.1-minimal-eksbuild.1  sha256:b582776353eee9ba9638f8a487cf7670f3bdf4ea..  30.63MB   3     0       0
+registry.k8s.io                               metrics-server/metrics-server    v0.6.4                      sha256:ee4304963fb035239bb5c5e8c10f2f38ee80efc1..  29.96MB   1     0       1
+```
+
+In the above example, we can see we have multiple images with the same tag, but different id e.g. `amazon-k8s-cni`.
+We can also see that one of them had multiple containers restarted.
+
+### Get image info
+
+To follow from the example above, we can get more information about the image, here we can see that the `amazon-k8s-cni`
+image has changed and the pods that started later use new re-tagged image.
+
+```
+kubectl-image get -n kube-system
+
+registry:   602401143452.dkr.ecr.eu-west-2.amazonaws.com
+  repository: amazon-k8s-cni
+    id: sha256:0aea2419c512f8d41a28d9c4c203247582e434a90e77a5bcd5beb22cbe7a0a4a tags: v1.14.1-eksbuild.1
+    CONTAINER  RESTART  STATE    MESSAGE                          INIT   POD                         PHASE
+    aws-node   5        running  started at 2023-11-16T00:02:09Z  false  kube-system/aws-node-znbpk  Running
+    id: sha256:60e1f62f53dc02d5bd1df3be1e327564712052617b05f691cfe322bd2a152505 tags: v1.14.1-eksbuild.1
+    CONTAINER  RESTART  STATE    MESSAGE                          INIT   POD                         PHASE
+    aws-node   0        running  started at 2023-11-22T09:39:23Z  false  kube-system/aws-node-q4xds  Running
+    aws-node   0        running  started at 2023-11-22T09:39:23Z  false  kube-system/aws-node-s7299  Running
+    aws-node   0        running  started at 2023-11-22T09:39:25Z  false  kube-system/aws-node-w9v27  Running
+  repository: amazon-k8s-cni-init
+    id: sha256:2e23a3ecc3fbb541a474a6096cd5ec7ebf91ec6ebe4aac3ddc8ff3c18cd6d242 tags: v1.14.1-eksbuild.1
+    CONTAINER         RESTART  STATE       MESSAGE                 INIT  POD                         PHASE
+    aws-vpc-cni-init  5        terminated  exit code: 0 Completed  true  kube-system/aws-node-znbpk  Running
+    id: sha256:7f5a193cf10e73fc14121aa2fc2f81361aeb9f6ca7edb30f5be3ee7f5ef47ec8 tags: v1.14.1-eksbuild.1
+    CONTAINER         RESTART  STATE       MESSAGE                 INIT  POD                         PHASE
+    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  true  kube-system/aws-node-q4xds  Running
+    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  true  kube-system/aws-node-s7299  Running
+    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  true  kube-system/aws-node-w9v27  Running
+  ...
 ```
 
 ## download

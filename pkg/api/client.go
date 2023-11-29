@@ -35,24 +35,24 @@ func (c Client) ListNodes(ctx context.Context) (Nodes, error) {
 	return NewNodes(nodeList.Items), nil
 }
 
-func (c Client) ListRegistries(ctx context.Context, namespace, labelSelector, fieldSelector string) (Registries, error) {
+func (c Client) ListRegistries(ctx context.Context, namespace string) (Registries, error) {
 
 	if namespace == "" {
-		pods, err := c.getAllPods(ctx, labelSelector, fieldSelector)
+		pods, err := c.getAllPods(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("get images: %w", err)
 		}
 		return NewRegistries(pods), nil
 	}
 
-	pods, err := c.getPods(ctx, namespace, labelSelector, fieldSelector)
+	pods, err := c.getPods(ctx, namespace)
 	if err != nil {
 		return nil, fmt.Errorf("get images: %w", err)
 	}
 	return NewRegistries(pods), nil
 }
 
-func (c Client) getAllPods(ctx context.Context, labelSelector, fieldSelector string) ([]v1.Pod, error) {
+func (c Client) getAllPods(ctx context.Context) ([]v1.Pod, error) {
 
 	namespaces, err := c.getNamespaces(ctx)
 	if err != nil {
@@ -61,7 +61,7 @@ func (c Client) getAllPods(ctx context.Context, labelSelector, fieldSelector str
 
 	var pods []v1.Pod
 	for _, namespace := range namespaces {
-		p, err := c.getPods(ctx, namespace.Name, labelSelector, fieldSelector)
+		p, err := c.getPods(ctx, namespace.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -70,9 +70,9 @@ func (c Client) getAllPods(ctx context.Context, labelSelector, fieldSelector str
 	return pods, nil
 }
 
-func (c Client) getPods(ctx context.Context, namespace, labelSelector, fieldSelector string) ([]v1.Pod, error) {
+func (c Client) getPods(ctx context.Context, namespace string) ([]v1.Pod, error) {
 
-	podList, err := c.coreV1.Pods(namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector, FieldSelector: fieldSelector})
+	podList, err := c.coreV1.Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

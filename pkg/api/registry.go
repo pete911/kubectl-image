@@ -23,11 +23,10 @@ func NewRegistries(pods []v1.Pod) Registries {
 
 func addToRegistries(registries Registries, p v1.Pod, c v1.Container, isInit bool) {
 	container := NewContainer(p, c, isInit)
-	imageName := ParseImageName(c.Image)
-	if _, ok := registries[imageName.Registry]; !ok {
-		registries[imageName.Registry] = newRegistry(imageName)
+	if _, ok := registries[container.ImageName.Registry]; !ok {
+		registries[container.ImageName.Registry] = newRegistry(container)
 	}
-	registries[imageName.Registry].addRepository(imageName, container)
+	registries[container.ImageName.Registry].addRepository(container)
 }
 
 func (r Registries) List() []Registry {
@@ -46,14 +45,12 @@ func (r Registries) List() []Registry {
 // Registry (e.g. gcr.io) 'bucket' of repositories (and images)
 type Registry struct {
 	Name         string
-	ImageName    ImageName
 	repositories map[string]Repository
 }
 
-func newRegistry(imageName ImageName) Registry {
+func newRegistry(container Container) Registry {
 	return Registry{
-		Name:         imageName.Registry,
-		ImageName:    imageName,
+		Name:         container.ImageName.Registry,
 		repositories: map[string]Repository{},
 	}
 }
@@ -69,68 +66,31 @@ func (r Registry) ListRepositories() []Repository {
 	return out
 }
 
-func (r Registry) addRepository(imageName ImageName, container Container) {
-	if _, ok := r.repositories[imageName.Repository]; !ok {
-		r.repositories[imageName.Repository] = newRepository(imageName)
+func (r Registry) addRepository(container Container) {
+	if _, ok := r.repositories[container.ImageName.Repository]; !ok {
+		r.repositories[container.ImageName.Repository] = newRepository(container)
 	}
-	r.repositories[imageName.Repository].addTagID(imageName, container)
+	r.repositories[container.ImageName.Repository].addID(container)
 }
 
 // --- repository ---
 
 // Repository (image name without registry and tag/id e.g. jacksontj/promxy) 'bucket' of tags/ids
 type Repository struct {
-	Name      string
-	ImageName ImageName
-	tagIDs    map[string]TagID
+	Name string
+	IDs  map[string]ID
 }
 
-func newRepository(imageName ImageName) Repository {
+func newRepository(container Container) Repository {
 	return Repository{
-		Name:      imageName.Repository,
-		ImageName: imageName,
-		tagIDs:    map[string]TagID{},
+		Name: container.ImageName.Repository,
+		IDs:  map[string]ID{},
 	}
 }
 
-func (r Repository) ListTagIDs() []TagID {
-	var out []TagID
-	for _, v := range r.tagIDs {
-		out = append(out, v)
-	}
-	sort.Slice(out, func(i, j int) bool {
-		return out[j].Name > out[i].Name
-	})
-	return out
-}
-
-func (r Repository) addTagID(imageName ImageName, container Container) {
-	if _, ok := r.tagIDs[imageName.TagOrID()]; !ok {
-		r.tagIDs[imageName.TagOrID()] = newTagID(imageName)
-	}
-	r.tagIDs[imageName.TagOrID()].addID(container)
-}
-
-// --- image tag or digest/id ---
-
-// TagID is image tag or id, it comes from container
-type TagID struct {
-	Name      string
-	ImageName ImageName
-	iDs       map[string]ID
-}
-
-func newTagID(imageName ImageName) TagID {
-	return TagID{
-		Name:      imageName.TagOrID(),
-		ImageName: imageName,
-		iDs:       map[string]ID{},
-	}
-}
-
-func (t TagID) ListIDs() []ID {
+func (r Repository) ListIDs() []ID {
 	var out []ID
-	for _, v := range t.iDs {
+	for _, v := range r.IDs {
 		out = append(out, v)
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -139,11 +99,11 @@ func (t TagID) ListIDs() []ID {
 	return out
 }
 
-func (t TagID) addID(container Container) {
-	if _, ok := t.iDs[container.ImageID]; !ok {
-		t.iDs[container.ImageID] = newID(container.ImageID)
+func (r Repository) addID(container Container) {
+	if _, ok := r.IDs[container.ImageName.ID]; !ok {
+		r.IDs[container.ImageName.ID] = newID(container.ImageName.ID)
 	}
-	t.iDs[container.ImageID].addContainer(container)
+	r.IDs[container.ImageName.ID].addContainer(container)
 }
 
 // --- container digest/id ---
@@ -151,6 +111,7 @@ func (t TagID) addID(container Container) {
 // ID is container image digest/ID, it comes from container status after image is pulled
 type ID struct {
 	Name       string
+	tags       map[string]struct{}
 	containers map[containerKey]Container
 }
 
@@ -161,7 +122,7 @@ type containerKey struct {
 }
 
 func newID(name string) ID {
-	return ID{Name: name, containers: map[containerKey]Container{}}
+	return ID{Name: name, tags: map[string]struct{}{}, containers: map[containerKey]Container{}}
 }
 
 func (i ID) addContainer(container Container) {
@@ -169,6 +130,9 @@ func (i ID) addContainer(container Container) {
 		podName:       container.Pod.Name,
 		podNamespace:  container.Pod.Namespace,
 		containerName: container.Name,
+	}
+	if container.ImageName.Tag != "" {
+		i.tags[container.ImageName.Tag] = struct{}{}
 	}
 	i.containers[key] = container
 }
@@ -181,5 +145,14 @@ func (i ID) ListContainers() []Container {
 	sort.Slice(out, func(i, j int) bool {
 		return out[j].Name > out[i].Name
 	})
+	return out
+}
+
+func (i ID) ListTags() []string {
+	var out []string
+	for k := range i.tags {
+		out = append(out, k)
+	}
+	sort.Strings(out)
 	return out
 }
