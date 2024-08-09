@@ -10,7 +10,7 @@ spec:
         matchLabels:
           os: darwin
           arch: amd64
-      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_darwin_amd64.tar.gz" .TagName | indent 6 }}
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/${tag}/kubectl-image_${version}_darwin_amd64.tar.gz" .TagName | indent 6 }}
       bin: kubectl-image
       files:
         - from: kubectl-image
@@ -21,7 +21,7 @@ spec:
         matchLabels:
           os: darwin
           arch: arm64
-      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_darwin_arm64.tar.gz" .TagName | indent 6 }}
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/${tag}/kubectl-image_${version}_darwin_arm64.tar.gz" .TagName | indent 6 }}
       bin: kubectl-image
       files:
         - from: kubectl-image
@@ -32,7 +32,7 @@ spec:
         matchLabels:
           os: linux
           arch: amd64
-      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_linux_amd64.tar.gz" .TagName | indent 6 }}
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/${tag}/kubectl-image_${version}_linux_amd64.tar.gz" .TagName | indent 6 }}
       bin: kubectl-image
       files:
         - from: kubectl-image
@@ -43,7 +43,7 @@ spec:
         matchLabels:
           os: linux
           arch: arm64
-      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_linux_arm64.tar.gz" .TagName | indent 6 }}
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/${tag}/kubectl-image_${version}_linux_arm64.tar.gz" .TagName | indent 6 }}
       bin: kubectl-image
       files:
         - from: kubectl-image
@@ -54,7 +54,7 @@ spec:
         matchLabels:
           os: windows
           arch: amd64
-      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_windows_amd64.zip" .TagName | indent 6 }}
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/${tag}/kubectl-image_${version}_windows_amd64.zip" .TagName | indent 6 }}
       bin: kubectl-image.exe
       files:
         - from: kubectl-image.exe
@@ -65,7 +65,7 @@ spec:
         matchLabels:
           os: windows
           arch: arm64
-      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_windows_arm64.zip" .TagName | indent 6 }}
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/${tag}/kubectl-image_${version}_windows_arm64.zip" .TagName | indent 6 }}
       bin: kubectl-image.exe
       files:
         - from: kubectl-image.exe
