@@ -1,0 +1,78 @@
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: image
+spec:
+  version: {{ .TagName }}
+  homepage: https://github.com/pete911/kubectl-image
+  platforms:
+    - selector:
+        matchLabels:
+          os: darwin
+          arch: amd64
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_darwin_amd64.tar.gz" .TagName | indent 6 }}
+      bin: kubectl-image
+      files:
+        - from: kubectl-image
+          to: .
+        - from: LICENSE
+          to: .
+    - selector:
+        matchLabels:
+          os: darwin
+          arch: arm64
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_darwin_arm64.tar.gz" .TagName | indent 6 }}
+      bin: kubectl-image
+      files:
+        - from: kubectl-image
+          to: .
+        - from: LICENSE
+          to: .
+    - selector:
+        matchLabels:
+          os: linux
+          arch: amd64
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_linux_amd64.tar.gz" .TagName | indent 6 }}
+      bin: kubectl-image
+      files:
+        - from: kubectl-image
+          to: .
+        - from: LICENSE
+          to: .
+    - selector:
+        matchLabels:
+          os: linux
+          arch: arm64
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_linux_arm64.tar.gz" .TagName | indent 6 }}
+      bin: kubectl-image
+      files:
+        - from: kubectl-image
+          to: .
+        - from: LICENSE
+          to: .
+    - selector:
+        matchLabels:
+          os: windows
+          arch: amd64
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_windows_amd64.zip" .TagName | indent 6 }}
+      bin: kubectl-image.exe
+      files:
+        - from: kubectl-image.exe
+          to: .
+        - from: LICENSE
+          to: .
+    - selector:
+        matchLabels:
+          os: windows
+          arch: arm64
+      {{addURIAndSha "https://github.com/pete911/kubectl-image/releases/download/{{ .TagName }}/kubectl-image_{{ .TagName }}_windows_arm64.zip" .TagName | indent 6 }}
+      bin: kubectl-image.exe
+      files:
+        - from: kubectl-image.exe
+          to: .
+        - from: LICENSE
+          to: .
+  shortDescription: View images running in kubernetes cluster.
+  description: |
+    kubectl-image is a subcommand of kubectl to manage view images running in kubernetes cluster.
+    Read more documentation at: https://github.com/pete911/kubectl-image
