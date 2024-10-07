@@ -19,7 +19,7 @@ func init() {
 }
 
 func GetRegistries() api.Registries {
-	client, err := api.NewClient(GlobalFlags.KubeconfigPath, GlobalFlags.Namespace)
+	client, err := api.NewClient(GlobalFlags.KubeconfigPath, GlobalFlags.Context, GlobalFlags.Namespace)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)

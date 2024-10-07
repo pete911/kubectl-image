@@ -14,6 +14,7 @@ var logLevels = map[string]slog.Level{"debug": slog.LevelDebug, "info": slog.Lev
 
 type Flags struct {
 	KubeconfigPath string
+	Context        string
 	logLevel       string
 	Namespace      string
 	AllNamespaces  bool
@@ -37,6 +38,12 @@ func InitPersistentFlags(cmd *cobra.Command, flags *Flags) {
 		"kubeconfig",
 		getStringEnv("KUBECONFIG", defaultKubeconfig),
 		"path to kubeconfig file",
+	)
+	cmd.PersistentFlags().StringVar(
+		&flags.Context,
+		"context",
+		"",
+		"use specific kubeconfig context",
 	)
 	cmd.PersistentFlags().StringVar(
 		&flags.logLevel,

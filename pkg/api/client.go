@@ -8,7 +8,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"time"
 )
 
@@ -17,15 +16,13 @@ type Client struct {
 	coreV1    corev1.CoreV1Interface
 }
 
-func NewClient(kubeconfigPath, namespace string) (Client, error) {
-	clientConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
-		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}})
-
+func NewClient(kubeconfigPath, contextName, namespace string) (Client, error) {
+	clientConfig := newClientConfig(kubeconfigPath, contextName)
 	if namespace == "" {
 		if ns, _, err := clientConfig.Namespace(); err == nil {
 			namespace = ns
-		} else {
+		}
+		if namespace == "" {
 			namespace = "default"
 		}
 	}
@@ -42,6 +39,22 @@ func NewClient(kubeconfigPath, namespace string) (Client, error) {
 		Namespace: namespace,
 		coreV1:    cs.CoreV1(),
 	}, nil
+}
+
+func newClientConfig(kubeconfigPath, contextName string) clientcmd.ClientConfig {
+	if contextName == "" {
+		return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+			&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
+			&clientcmd.ConfigOverrides{},
+		)
+	}
+
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: contextName,
+		},
+	)
 }
 
 func (c Client) ListRegistries(allNamespaces bool) (Registries, error) {
