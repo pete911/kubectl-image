@@ -8,15 +8,29 @@ import (
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"time"
 )
 
 type Client struct {
-	coreV1 corev1.CoreV1Interface
+	Namespace string
+	coreV1    corev1.CoreV1Interface
 }
 
-func NewClient(kubeconfigPath string) (Client, error) {
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+func NewClient(kubeconfigPath, namespace string) (Client, error) {
+	clientConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath},
+		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}})
+
+	if namespace == "" {
+		if ns, _, err := clientConfig.Namespace(); err == nil {
+			namespace = ns
+		} else {
+			namespace = "default"
+		}
+	}
+
+	config, err := clientConfig.ClientConfig()
 	if err != nil {
 		return Client{}, err
 	}
@@ -24,16 +38,19 @@ func NewClient(kubeconfigPath string) (Client, error) {
 	if err != nil {
 		return Client{}, err
 	}
-	return Client{coreV1: cs.CoreV1()}, nil
+	return Client{
+		Namespace: namespace,
+		coreV1:    cs.CoreV1(),
+	}, nil
 }
 
-func (c Client) ListRegistries(namespace string) (Registries, error) {
+func (c Client) ListRegistries(allNamespaces bool) (Registries, error) {
 	nodes, err := c.listNodes()
 	if err != nil {
 		return nil, fmt.Errorf("list nodes: %w", err)
 	}
 
-	if namespace == "" {
+	if allNamespaces {
 		pods, err := c.getAllPods()
 		if err != nil {
 			return nil, fmt.Errorf("get images: %w", err)
@@ -41,7 +58,7 @@ func (c Client) ListRegistries(namespace string) (Registries, error) {
 		return NewRegistries(nodes, pods), nil
 	}
 
-	pods, err := c.getPods(namespace)
+	pods, err := c.getPods(c.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("get images: %w", err)
 	}

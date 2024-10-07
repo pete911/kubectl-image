@@ -13,14 +13,10 @@ import (
 var logLevels = map[string]slog.Level{"debug": slog.LevelDebug, "info": slog.LevelInfo, "warn": slog.LevelWarn, "error": slog.LevelError}
 
 type Flags struct {
-	kubeconfigPath string
+	KubeconfigPath string
 	logLevel       string
-	namespace      string
-	allNamespaces  bool
-}
-
-func (f Flags) KubeconfigPath() string {
-	return f.kubeconfigPath
+	Namespace      string
+	AllNamespaces  bool
 }
 
 func (f Flags) Logger() *slog.Logger {
@@ -34,17 +30,10 @@ func (f Flags) Logger() *slog.Logger {
 	return nil
 }
 
-func (f Flags) Namespace() string {
-	if f.allNamespaces {
-		return ""
-	}
-	return f.namespace
-}
-
 func InitPersistentFlags(cmd *cobra.Command, flags *Flags) {
 	defaultKubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
 	cmd.PersistentFlags().StringVar(
-		&flags.kubeconfigPath,
+		&flags.KubeconfigPath,
 		"kubeconfig",
 		getStringEnv("KUBECONFIG", defaultKubeconfig),
 		"path to kubeconfig file",
@@ -56,14 +45,14 @@ func InitPersistentFlags(cmd *cobra.Command, flags *Flags) {
 		"log level - debug, info, warn, error",
 	)
 	cmd.PersistentFlags().StringVarP(
-		&flags.namespace,
+		&flags.Namespace,
 		"namespace",
 		"n",
-		"default",
+		"",
 		"kubernetes namespace",
 	)
 	cmd.PersistentFlags().BoolVarP(
-		&flags.allNamespaces,
+		&flags.AllNamespaces,
 		"all-namespaces",
 		"A",
 		false,

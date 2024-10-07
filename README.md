@@ -32,7 +32,7 @@ Flags:
   -h, --help                    help for list
       --kubeconfig string       path to kubeconfig file (default "~/.kube/config")
       --log-level string        log level - debug, info, warn, error (default "warn")
-  -n, --namespace string        kubernetes namespace (default "default")
+  -n, --namespace string        kubernetes namespace
 ```
 
 - list images in all namespaces `kubectl image list -A`

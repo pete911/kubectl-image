@@ -19,22 +19,22 @@ func init() {
 }
 
 func GetRegistries() api.Registries {
-	client, err := api.NewClient(GlobalFlags.KubeconfigPath())
+	client, err := api.NewClient(GlobalFlags.KubeconfigPath, GlobalFlags.Namespace)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
 	}
 
-	registries, err := client.ListRegistries(GlobalFlags.Namespace())
+	registries, err := client.ListRegistries(GlobalFlags.AllNamespaces)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
 	}
 
 	if len(registries) == 0 {
-		namespace := "all namespaces"
-		if GlobalFlags.Namespace() != "" {
-			namespace = fmt.Sprintf("%s namespace", GlobalFlags.Namespace())
+		namespace := fmt.Sprintf("%s namespace", client.Namespace)
+		if GlobalFlags.AllNamespaces {
+			namespace = "all namespaces"
 		}
 		fmt.Printf("found 0 images in %s\n", namespace)
 		os.Exit(0)
