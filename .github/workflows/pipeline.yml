@@ -2,14 +2,13 @@ name: pipeline
 
 on: [push]
 
-permissions:
-  contents: write
-
 jobs:
   go:
     uses: pete911/github-actions/.github/workflows/go.yml@main
   go-release:
     needs: [go]
+    permissions:
+        contents: write
     uses: pete911/github-actions/.github/workflows/go-releaser.yml@main
     with:
       krew: true
