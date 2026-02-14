@@ -1,8 +1,9 @@
 package api
 
 import (
-	"k8s.io/api/core/v1"
 	"sort"
+
+	"k8s.io/api/core/v1"
 )
 
 // Registries map where key is registry name (e.g. gcr.io) and value is Registry struct

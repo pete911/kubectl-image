@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/pete911/kubectl-image/pkg/api"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var (

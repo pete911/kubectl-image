@@ -1,8 +1,9 @@
 package api
 
 import (
-	v1 "k8s.io/api/core/v1"
 	"time"
+
+	v1 "k8s.io/api/core/v1"
 )
 
 // --- nodes ---

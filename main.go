@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/pete911/kubectl-image/cmd"
 	"os"
+
+	"github.com/pete911/kubectl-image/cmd"
 )
 
 var Version = "dev"

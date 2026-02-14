@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/pete911/kubectl-image/pkg/api"
 	"github.com/pete911/kubectl-image/pkg/out"
 	"github.com/spf13/cobra"
-	"log/slog"
-	"strings"
 )
 
 var (

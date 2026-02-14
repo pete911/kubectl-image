@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/pete911/kubectl-image/pkg/api"
-	"github.com/pete911/kubectl-image/pkg/out"
-	"github.com/spf13/cobra"
 	"log/slog"
 	"strings"
 	"time"
+
+	"github.com/pete911/kubectl-image/pkg/api"
+	"github.com/pete911/kubectl-image/pkg/out"
+	"github.com/spf13/cobra"
 )
 
 var (
