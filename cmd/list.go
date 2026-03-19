@@ -32,7 +32,7 @@ func runListCmd(_ *cobra.Command, _ []string) {
 func PrintList(logger *slog.Logger, registries api.Registries) {
 	table := out.NewTable(logger, 50)
 	table.AddRow("REGISTRY", "REPOSITORY", "TAG", "ID", "SIZE", "PODS", "FAILED", "RESTART")
-	for _, registry := range registries {
+	for _, registry := range registries.List() {
 		for _, repository := range registry.ListRepositories() {
 			for _, id := range repository.ListIDs() {
 				containers := id.ListContainers()

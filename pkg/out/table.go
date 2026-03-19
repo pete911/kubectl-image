@@ -36,7 +36,7 @@ func (t Table) resizeColumns(columns []string) []string {
 	for i := range columns {
 		if len(columns[i]) > t.maxColSize {
 			column := columns[i][:t.maxColSize-3]
-			out = append(out, fmt.Sprintf("%s..", column))
+			out = append(out, fmt.Sprintf("%s...", column))
 			continue
 		}
 		out = append(out, columns[i])

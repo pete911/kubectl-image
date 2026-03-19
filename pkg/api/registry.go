@@ -12,29 +12,24 @@ type Registries map[string]Registry
 func NewRegistries(nodes map[string]Node, pods []v1.Pod) Registries {
 	registries := Registries{}
 	for _, p := range pods {
+		node := nodes[p.Spec.NodeName]
 		for _, c := range p.Spec.Containers {
-			container := NewContainer(p, c, false)
-			if node, ok := nodes[p.Spec.NodeName]; ok {
-				container.ImageSizeBytes = node.NodeImages.GetSizeBytes(container.ImageName)
-				container.NodeName = node.Name
-				container.NodeCreated = node.Created
-			}
-			addToRegistries(registries, p, container, false)
+			container := NewContainer(node, p, c, Main)
+			addToRegistries(registries, container)
 		}
 		for _, c := range p.Spec.InitContainers {
-			container := NewContainer(p, c, true)
-			if node, ok := nodes[p.Spec.NodeName]; ok {
-				container.ImageSizeBytes = node.NodeImages.GetSizeBytes(container.ImageName)
-				container.NodeName = node.Name
-				container.NodeCreated = node.Created
-			}
-			addToRegistries(registries, p, container, true)
+			container := NewContainer(node, p, c, Init)
+			addToRegistries(registries, container)
+		}
+		for _, c := range p.Spec.EphemeralContainers {
+			container := NewEphemeralContainer(node, p, c)
+			addToRegistries(registries, container)
 		}
 	}
 	return registries
 }
 
-func addToRegistries(registries Registries, p v1.Pod, c Container, isInit bool) {
+func addToRegistries(registries Registries, c Container) {
 	if _, ok := registries[c.ImageName.Registry]; !ok {
 		registries[c.ImageName.Registry] = newRegistry(c)
 	}

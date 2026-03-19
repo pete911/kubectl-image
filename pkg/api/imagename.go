@@ -40,7 +40,7 @@ func (i ImageName) Equals(imageName ImageName) bool {
 	if imageName.Tag != "" && i.Tag != "" {
 		return imageName.Tag == i.Tag
 	}
-	return false
+	return true
 }
 
 func ParseImageName(image string) ImageName {

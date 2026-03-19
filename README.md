@@ -72,22 +72,22 @@ kubectl-image get -n kube-system
 registry:   602401143452.dkr.ecr.eu-west-2.amazonaws.com
   repository: amazon-k8s-cni
     id: sha256:0aea2419c512f8d41a28d9c4c203247582e434a90e77a5bcd5beb22cbe7a0a4a tags: v1.14.1-eksbuild.1
-    CONTAINER  RESTART  STATE    MESSAGE                          INIT   POD                         PHASE    NODE                                     NODE CREATED
-    aws-node   5        running  started at 2023-11-16T00:02:09Z  false  kube-system/aws-node-znbpk  Running  ip-10-0-0-64.eu-west-2.compute.internal  2023-10-13T13:32:32+01:00
+    CONTAINER  RESTART  STATE    MESSAGE                          TYPE   POD                         PHASE    NODE                                     NODE CREATED
+    aws-node   5        running  started at 2023-11-16T00:02:09Z  main   kube-system/aws-node-znbpk  Running  ip-10-0-0-64.eu-west-2.compute.internal  2023-10-13T13:32:32+01:00
     id: sha256:60e1f62f53dc02d5bd1df3be1e327564712052617b05f691cfe322bd2a152505 tags: v1.14.1-eksbuild.1
-    CONTAINER  RESTART  STATE    MESSAGE                          INIT   POD                         PHASE    NODE                                      NODE CREATED
-    aws-node   0        running  started at 2023-11-22T09:39:23Z  false  kube-system/aws-node-s7299  Running  ip-10-0-1-144.eu-west-2.compute.internal  2023-11-22T09:39:11Z
-    aws-node   0        running  started at 2023-11-22T09:39:25Z  false  kube-system/aws-node-w9v27  Running  ip-10-0-0-59.eu-west-2.compute.internal   2023-11-22T09:39:12Z
-    aws-node   0        running  started at 2023-11-22T09:39:23Z  false  kube-system/aws-node-q4xds  Running  ip-10-0-2-183.eu-west-2.compute.internal  2023-11-22T09:39:11Z
+    CONTAINER  RESTART  STATE    MESSAGE                          TYPE   POD                         PHASE    NODE                                      NODE CREATED
+    aws-node   0        running  started at 2023-11-22T09:39:23Z  main   kube-system/aws-node-s7299  Running  ip-10-0-1-144.eu-west-2.compute.internal  2023-11-22T09:39:11Z
+    aws-node   0        running  started at 2023-11-22T09:39:25Z  main   kube-system/aws-node-w9v27  Running  ip-10-0-0-59.eu-west-2.compute.internal   2023-11-22T09:39:12Z
+    aws-node   0        running  started at 2023-11-22T09:39:23Z  main   kube-system/aws-node-q4xds  Running  ip-10-0-2-183.eu-west-2.compute.internal  2023-11-22T09:39:11Z
   repository: amazon-k8s-cni-init
     id: sha256:2e23a3ecc3fbb541a474a6096cd5ec7ebf91ec6ebe4aac3ddc8ff3c18cd6d242 tags: v1.14.1-eksbuild.1
-    CONTAINER         RESTART  STATE       MESSAGE                 INIT  POD                         PHASE    NODE                                     NODE CREATED
-    aws-vpc-cni-init  5        terminated  exit code: 0 Completed  true  kube-system/aws-node-znbpk  Running  ip-10-0-0-64.eu-west-2.compute.internal  2023-10-13T13:32:32+01:00
+    CONTAINER         RESTART  STATE       MESSAGE                 TYPE  POD                         PHASE    NODE                                     NODE CREATED
+    aws-vpc-cni-init  5        terminated  exit code: 0 Completed  init  kube-system/aws-node-znbpk  Running  ip-10-0-0-64.eu-west-2.compute.internal  2023-10-13T13:32:32+01:00
     id: sha256:7f5a193cf10e73fc14121aa2fc2f81361aeb9f6ca7edb30f5be3ee7f5ef47ec8 tags: v1.14.1-eksbuild.1
-    CONTAINER         RESTART  STATE       MESSAGE                 INIT  POD                         PHASE    NODE                                      NODE CREATED
-    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  true  kube-system/aws-node-q4xds  Running  ip-10-0-2-183.eu-west-2.compute.internal  2023-11-22T09:39:11Z
-    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  true  kube-system/aws-node-s7299  Running  ip-10-0-1-144.eu-west-2.compute.internal  2023-11-22T09:39:11Z
-    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  true  kube-system/aws-node-w9v27  Running  ip-10-0-0-59.eu-west-2.compute.internal   2023-11-22T09:39:12Z
+    CONTAINER         RESTART  STATE       MESSAGE                 TYPE  POD                         PHASE    NODE                                      NODE CREATED
+    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  init  kube-system/aws-node-q4xds  Running  ip-10-0-2-183.eu-west-2.compute.internal  2023-11-22T09:39:11Z
+    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  init  kube-system/aws-node-s7299  Running  ip-10-0-1-144.eu-west-2.compute.internal  2023-11-22T09:39:11Z
+    aws-vpc-cni-init  0        terminated  exit code: 0 Completed  init  kube-system/aws-node-w9v27  Running  ip-10-0-0-59.eu-west-2.compute.internal   2023-11-22T09:39:12Z
   ...
 ```
 

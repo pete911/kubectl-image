@@ -80,21 +80,7 @@ func (c Client) ListRegistries(allNamespaces bool) (Registries, error) {
 }
 
 func (c Client) getAllPods() ([]v1.Pod, error) {
-
-	namespaces, err := c.getNamespaces()
-	if err != nil {
-		return nil, fmt.Errorf("get namespaces: %w", err)
-	}
-
-	var pods []v1.Pod
-	for _, namespace := range namespaces {
-		p, err := c.getPods(namespace.Name)
-		if err != nil {
-			return nil, err
-		}
-		pods = append(pods, p...)
-	}
-	return pods, nil
+	return c.getPods("")
 }
 
 func (c Client) getPods(namespace string) ([]v1.Pod, error) {

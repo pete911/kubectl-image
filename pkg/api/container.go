@@ -9,11 +9,18 @@ import (
 )
 
 type Containers []Container
+type ContainerType string
+
+const (
+	Init      ContainerType = "init"
+	Ephemeral ContainerType = "ephemeral"
+	Main      ContainerType = "main"
+)
 
 type Container struct {
 	Name           string
 	Pod            Pod
-	IsInit         bool
+	ContainerType  ContainerType
 	ImageName      ImageName
 	ImageSizeBytes int64
 	NodeName       string
@@ -23,21 +30,45 @@ type Container struct {
 	RestartCount   int
 }
 
-func NewContainer(pod v1.Pod, container v1.Container, isInit bool) Container {
-	containerStatus := getContainerStatus(pod, container.Name, isInit)
+func NewContainer(node Node, pod v1.Pod, container v1.Container, containerType ContainerType) Container {
+	containerStatus := getContainerStatus(pod, container.Name, containerType)
 	state, message := getContainerStateAndMessage(containerStatus)
 	// set both, image with tag and id as well (set by kube)
 	imageName := ParseImageName(container.Image)
 	imageName.ID = ParseImageID(containerStatus.ImageID)
 
 	return Container{
-		Name:         container.Name,
-		Pod:          NewPod(pod),
-		IsInit:       isInit,
-		ImageName:    imageName,
-		State:        state,
-		Message:      message,
-		RestartCount: int(containerStatus.RestartCount),
+		Name:           container.Name,
+		Pod:            NewPod(pod),
+		ContainerType:  containerType,
+		ImageName:      imageName,
+		State:          state,
+		Message:        message,
+		RestartCount:   int(containerStatus.RestartCount),
+		ImageSizeBytes: node.NodeImages.GetSizeBytes(imageName),
+		NodeName:       node.Name,
+		NodeCreated:    node.Created,
+	}
+}
+
+func NewEphemeralContainer(node Node, pod v1.Pod, container v1.EphemeralContainer) Container {
+	containerStatus := getContainerStatus(pod, container.Name, Ephemeral)
+	state, message := getContainerStateAndMessage(containerStatus)
+	// set both, image with tag and id as well (set by kube)
+	imageName := ParseImageName(container.Image)
+	imageName.ID = ParseImageID(containerStatus.ImageID)
+
+	return Container{
+		Name:           container.Name,
+		Pod:            NewPod(pod),
+		ContainerType:  Ephemeral,
+		ImageName:      imageName,
+		State:          state,
+		Message:        message,
+		RestartCount:   int(containerStatus.RestartCount),
+		ImageSizeBytes: node.NodeImages.GetSizeBytes(imageName),
+		NodeName:       node.Name,
+		NodeCreated:    node.Created,
 	}
 }
 
@@ -59,8 +90,8 @@ func toMessage(in ...string) string {
 	return strings.TrimSpace(strings.Join(in, " "))
 }
 
-func getContainerStatus(pod v1.Pod, containerName string, isInit bool) v1.ContainerStatus {
-	for _, status := range getContainerStatuses(pod, isInit) {
+func getContainerStatus(pod v1.Pod, containerName string, containerType ContainerType) v1.ContainerStatus {
+	for _, status := range getContainerStatuses(pod, containerType) {
 		if status.Name == containerName {
 			return status
 		}
@@ -68,11 +99,17 @@ func getContainerStatus(pod v1.Pod, containerName string, isInit bool) v1.Contai
 	return v1.ContainerStatus{}
 }
 
-func getContainerStatuses(pod v1.Pod, isInit bool) []v1.ContainerStatus {
-	if isInit {
+func getContainerStatuses(pod v1.Pod, containerType ContainerType) []v1.ContainerStatus {
+	switch containerType {
+	case Init:
 		return pod.Status.InitContainerStatuses
+	case Ephemeral:
+		return pod.Status.EphemeralContainerStatuses
+	case Main:
+		return pod.Status.ContainerStatuses
+	default:
+		return pod.Status.ContainerStatuses
 	}
-	return pod.Status.ContainerStatuses
 }
 
 type Pod struct {
