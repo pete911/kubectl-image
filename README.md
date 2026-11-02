@@ -95,6 +95,10 @@ registry:   602401143452.dkr.ecr.eu-west-2.amazonaws.com
 
 - [binary](https://github.com/pete911/kubectl-image/releases)
 
+> [!WARNING]
+> If you installed previous versions (before `v1.0.14`) via brew, you need to reinstall
+> (`brew remove kubectl-image && brew install kubectl-image`) to get updates. The formula was replaced by a cask.
+
 ## build/install
 
 ### brew
