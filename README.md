@@ -38,6 +38,7 @@ Flags:
 
 - list images in all namespaces `kubectl image list -A`
 - list images in a namespaces `kubectl image list -n kube-system`
+- list images sorted by column `kubectl image list --sort size`
 
 ## Example
 
